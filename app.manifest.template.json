@@ -1,0 +1,7 @@
+{
+  "name": "ytdlp.firefox.extension.app",
+  "description": "Receive video URL from firefox and download using yt-dlp",
+  "path": "<<DIR>>/app.py",
+  "type": "stdio",
+  "allowed_extensions": ["yt-dlp-firefox-extension@px86.github.io"]
+}
