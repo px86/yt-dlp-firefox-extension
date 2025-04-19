@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "My yt-dlp Extension",
+  "version": "1.0",
+  "description": "Captures current URL and sends it to a local app.",
+  "permissions": ["tabs", "nativeMessaging"],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_icon": "icon.png",
+    "default_title": "Download using yt-dlp"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "yt-dlp-firefox-extension@px86.github.io"
+    }
+  }
+}
