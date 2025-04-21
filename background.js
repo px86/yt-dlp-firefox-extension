@@ -3,6 +3,7 @@ function sendToLocalApp(url) {
   port.postMessage({ "url": url });
   port.onMessage.addListener((response) => {
     console.log("Got response:", response);
+    port.disconnect();
   });
 
   port.onDisconnect.addListener(() => {

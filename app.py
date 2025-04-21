@@ -1,6 +1,7 @@
 #!/usr/bin/env -S python -u
 
 import json
+import os
 import sys
 import struct
 import subprocess
@@ -47,11 +48,23 @@ def send_message(encoded_message: bytes) -> None:
 
 def process(message: CapturedMessage) -> None:
     """Do something with the captured message."""
-    subprocess.run(["notify-send", "URL Captured", message["url"]])
+
+    if os.fork() > 0:
+        send_message(encode_message(f"captured url: {message["url"]}"))
+        return
+
+    subprocess.run(["notify-send", "Downloading...", message["url"]])
+
+    proc = subprocess.run(["yt-dlp", message["url"]])
+
+    if proc.returncode == 0:
+        subprocess.run(["notify-send", "Download completed!", f"for {message["url"]}"])
+        sys.exit(0)
+
+    subprocess.run(["notify-send", "Download failed!", f"for {message["url"]}"])
+    sys.exit(1)
 
 
 if __name__ == "__main__":
-    while True:
-        message = capture_message()
-        process(message)
-        send_message(encode_message(f"captured url: {message["url"]}"))
+    message = capture_message()
+    process(message)
