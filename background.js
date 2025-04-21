@@ -1,6 +1,6 @@
-function sendToLocalApp(url) {
+function sendToLocalApp(message) {
   const port = browser.runtime.connectNative("ytdlp.firefox.extension.app");
-  port.postMessage({ "url": url });
+  port.postMessage(message);
   port.onMessage.addListener((response) => {
     console.log("Got response:", response);
     port.disconnect();
@@ -13,7 +13,9 @@ function sendToLocalApp(url) {
   });
 }
 
-browser.browserAction.onClicked.addListener((tab) => {
-  const url = tab.url;
-  sendToLocalApp(url);
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("message: ", message);
+  sendToLocalApp(message);
+  sendResponse({ status: "ok" });
+  return false;
 });

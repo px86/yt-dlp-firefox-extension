@@ -7,10 +7,11 @@ import struct
 import subprocess
 import configparser
 import logging
-from typing import TypedDict
+from typing import TypedDict, Literal
 
 
 class CapturedMessage(TypedDict):
+    action: Literal["video", "audio-only"]
     url: str
 
 
@@ -31,7 +32,10 @@ def capture_message() -> CapturedMessage:
     message_length = struct.unpack("=I", length_bytes)[0]
     raw_message = sys.stdin.buffer.read(message_length)
     message = json.loads(raw_message)
-    captured_message: CapturedMessage = {"url": message["url"]}
+    captured_message: CapturedMessage = {
+        "url": message["url"],
+        "action": message["action"],
+    }
     return captured_message
 
 
@@ -71,7 +75,10 @@ def process(message: CapturedMessage) -> None:
     logger.info("starting download for %s", message["url"])
     subprocess.run(["notify-send", "Downloading...", message["url"]])
 
-    proc = subprocess.run(["yt-dlp", message["url"]], cwd=config["DownloadDir"])
+    proc_args = ["yt-dlp", message["url"]]
+    if message["action"] == "audio-only":
+        proc_args.append("--extract-audio")
+    proc = subprocess.run(proc_args, cwd=config["DownloadDir"])
     logger.info("yt-dlp subprocess exited with code %i", proc.returncode)
 
     if proc.returncode == 0:
