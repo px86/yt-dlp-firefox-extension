@@ -1,3 +1,7 @@
 #+TITLE: yt-dlp-firefox-extension
 
 A firefox extension for downloading videos using =yt-dlp=, using native application messaging api.
+
+* Screenshot
+
+[[file:screenshot.png]].
