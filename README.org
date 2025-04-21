@@ -1,6 +1,6 @@
 #+TITLE: yt-dlp-firefox-extension
 
-A firefox extension for downloading videos using =yt-dlp=, using native application messaging api.
+A firefox extension for downloading video/audio using =yt-dlp=, using [[https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_messaging][native messaging]] api.
 
 * Screenshot
 
