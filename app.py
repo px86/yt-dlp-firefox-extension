@@ -5,6 +5,8 @@ import os
 import sys
 import struct
 import subprocess
+import configparser
+import logging
 from typing import TypedDict
 
 
@@ -14,6 +16,11 @@ class CapturedMessage(TypedDict):
 
 class ResponseMessage(TypedDict):
     message: str
+
+
+class Config(TypedDict):
+    DownloadDir: str
+    LogFile: str
 
 
 def capture_message() -> CapturedMessage:
@@ -51,18 +58,51 @@ def process(message: CapturedMessage) -> None:
 
     if os.fork() > 0:
         send_message(encode_message(f"captured url: {message["url"]}"))
-        return
+        sys.exit(0)
 
+    config = parse_config()
+
+    logging.basicConfig(
+        filename=config["LogFile"],
+        level=logging.DEBUG,
+        format="%(asctime)s:%(levelname)s: %(message)s",
+    )
+    logger = logging.getLogger(__name__)
+    logger.info("starting download for %s", message["url"])
     subprocess.run(["notify-send", "Downloading...", message["url"]])
 
-    proc = subprocess.run(["yt-dlp", message["url"]])
+    proc = subprocess.run(["yt-dlp", message["url"]], cwd=config["DownloadDir"])
+    logger.info("yt-dlp subprocess exited with code %i", proc.returncode)
 
     if proc.returncode == 0:
         subprocess.run(["notify-send", "Download completed!", f"for {message["url"]}"])
+        logger.info("exiting with code 0")
         sys.exit(0)
 
     subprocess.run(["notify-send", "Download failed!", f"for {message["url"]}"])
+    logger.info("exiting with code 1")
     sys.exit(1)
+
+
+def parse_config() -> Config:
+    parent_dir = os.path.dirname(__file__)
+    default_download_dir = os.path.join(parent_dir, "downloads")
+    default_log_file = os.path.join(parent_dir, "log.txt")
+
+    cp = configparser.ConfigParser()
+    cp.read(os.path.join(os.path.dirname(__file__), "config.ini"))
+    download_dir = os.path.expanduser(
+        cp.get("DEFAULT", "DownloadDir", fallback=default_download_dir)
+    )
+    os.makedirs(download_dir, exist_ok=True)
+
+    log_file = os.path.expanduser(
+        cp.get("DEFAULT", "LogFile", fallback=default_log_file)
+    )
+
+    config: Config = {"DownloadDir": download_dir, "LogFile": log_file}
+
+    return config
 
 
 if __name__ == "__main__":
